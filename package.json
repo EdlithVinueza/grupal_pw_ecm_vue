@@ -8,9 +8,11 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
+    "axios": "^1.7.9",
     "core-js": "^3.8.3",
     "grupal_pw_ecm_vue": "file:",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vue-router": "^4.0.13"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~5.0.0",
