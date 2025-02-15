@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8080/gestorcontenido/v1.1";
+const API_URL = "http://localhost:8081/gestorcontenido/v1.1";
 
 // Obtener lista de carpetas
 const getCarpetas = () => axios.get(`${API_URL}/carpetas`);
