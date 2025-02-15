@@ -1,4 +1,7 @@
 <template>
+  <div>
+    <Navbar />
+  </div>
   <div class="container">
     <div class="container-buttons">
       <button class="buttons" @click="goToInicio">HOME</button>
@@ -20,11 +23,7 @@
 
       <div class="list-container">
         <ul class="folder-list">
-          <li 
-            v-for="carpeta in carpetas" 
-            :key="carpeta.id" 
-            @dblclick="cargarArchivos(carpeta)"
-          >
+          <li v-for="carpeta in carpetas" :key="carpeta.id" @dblclick="cargarArchivos(carpeta)">
             📁 {{ carpeta.nombre }}
           </li>
         </ul>
@@ -53,8 +52,12 @@
 
 <script>
 import api from "../client/api"; // Importa la API
+import Navbar from '../components/Navbar.vue';
 
 export default {
+  components: {
+    Navbar
+  },
   data() {
     return {
       enArchivos: false,
@@ -300,6 +303,7 @@ export default {
 .back-folder:hover {
   background: #27ae60;
 }
+
 .container-buttons {
   display: flex;
   gap: 20px;
@@ -312,7 +316,8 @@ export default {
   margin-bottom: 20px;
 }
 
-.input, .file-input {
+.input,
+.file-input {
   padding: 8px;
   border: 1px solid #ccc;
   border-radius: 5px;
@@ -332,4 +337,4 @@ export default {
 .save-file-button:hover {
   background: #e67e22;
 }
-</style> 
+</style>

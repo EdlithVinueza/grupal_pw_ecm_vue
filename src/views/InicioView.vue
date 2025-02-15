@@ -1,4 +1,7 @@
 <template>
+  <div>
+    <Navbar />
+  </div>
   <div class="container">
     <div class="container-buttons">
       <button class="buttons" @click="goToInicio">HOME</button>
@@ -14,7 +17,11 @@
 </template>
 
 <script>
+import Navbar from '../components/Navbar.vue';
 export default {
+  components: {
+    Navbar
+  },
   name: 'InicioView',
   methods: {
     goToECM() {
@@ -26,10 +33,10 @@ export default {
   },
   computed: {
     logoUCE() {
-      return require("@/assets/logoUCE.png");
+      return require("@/assets/UCE.png");
     },
     logoCC() {
-      return require("@/assets/logoCC.png");
+      return require("@/assets/CC.png");
     }
 
   }
