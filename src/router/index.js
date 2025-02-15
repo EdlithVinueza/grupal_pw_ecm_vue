@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import InicioView from '../views/InicioView.vue';
-import BienvenidaView from '../views/BienvenidaView.vue';
 import ECMView from '../views/ECMView.vue';
 
 const routes = [
@@ -9,11 +8,7 @@ const routes = [
     name: 'Inicio',
     component: InicioView,
   },
-  {
-    path: '/bienvenida',
-    name: 'Bienvenida',
-    component: BienvenidaView,
-  },
+ 
   {
     path: '/ecm',
     name: 'ECM',
