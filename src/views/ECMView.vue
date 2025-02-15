@@ -31,6 +31,7 @@
           <li v-for="archivo in archivos" :key="archivo.id">
             📄 {{ archivo.nombre }}
             <button class="download-button" @click="descargar(archivo.id)">Descargar</button>
+            <button class="view-button" @click="mostrarModal(archivo)">Ver</button>
           </li>
         </ul>
       </div>
@@ -45,6 +46,27 @@
         <button class="save-file-button" @click="guardarArchivo" :disabled="!archivoSeleccionado">
           💾 Guardar Archivo
         </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">{{ archivoModal.nombre }}</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          {{ archivoModal.contenido }}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
       </div>
     </div>
   </div>
@@ -66,7 +88,8 @@ export default {
       historial: [],
       nombreCarpetaSeleccionada: "",
       nuevaCarpeta: "",
-      archivoSeleccionado: null
+      archivoSeleccionado: null,
+      archivoModal: { nombre: "", contenido: "" }
     };
   },
   methods: {
@@ -167,6 +190,13 @@ export default {
         alert("No se pudo descargar el archivo.");
       }
     },
+    mostrarModal(archivo) {
+      this.archivoModal = {
+        nombre: archivo.nombre,
+        contenido: "Contenido mockeado del archivo " + archivo.nombre
+      };
+      $('#exampleModal').modal('show');
+    },
     generarMockArchivos(tipo) {
       const ejemplos = {
         root: [
@@ -257,6 +287,21 @@ export default {
 
 .download-button:hover {
   background: #2980b9;
+}
+
+.view-button {
+  margin-left: 10px;
+  padding: 5px 10px;
+  background: #8e44ad;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+  transition: background-color 0.3s;
+}
+
+.view-button:hover {
+  background: #732d91;
 }
 
 .buttons {
