@@ -31,7 +31,6 @@
           <li v-for="archivo in archivos" :key="archivo.id">
             📄 {{ archivo.nombre }}
             <button class="download-button" @click="descargar(archivo.id)">Descargar</button>
-            <button class="view-button" @click="mostrarModal(archivo)">Ver</button>
           </li>
         </ul>
       </div>
@@ -50,26 +49,6 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLabel">{{ archivoModal.nombre }}</h5>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-          </button>
-        </div>
-        <div class="modal-body">
-          {{ archivoModal.contenido }}
-        </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <button type="button" class="btn btn-primary">Save changes</button>
-        </div>
-      </div>
-    </div>
-  </div>
 </template>
 
 <script>
@@ -189,13 +168,6 @@ export default {
         console.error("Error al descargar archivo:", error);
         alert("No se pudo descargar el archivo.");
       }
-    },
-    mostrarModal(archivo) {
-      this.archivoModal = {
-        nombre: archivo.nombre,
-        contenido: "Contenido mockeado del archivo " + archivo.nombre
-      };
-      $('#exampleModal').modal('show');
     },
     generarMockArchivos(tipo) {
       const ejemplos = {
