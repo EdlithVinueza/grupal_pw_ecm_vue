@@ -3,7 +3,7 @@
     <h2 class="subtitle">{{ rutaActual }}</h2>
 
     <div class="d-flex justify-content-end">
-      <button v-if="historial.length > 0 || nombreCarpetaSeleccionada !== 'Archivos'" class="btn btn-primary mb-3" @click="regresarCarpeta">
+      <button v-if="enArchivos || historial.length > 0 || nombreCarpetaSeleccionada !== 'Archivos'" class="btn btn-primary mb-3" @click="regresarCarpeta">
         <i class="bi bi-arrow-left text-white"></i> Volver
       </button>
     </div>
@@ -16,29 +16,32 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="carpeta in carpetas" :key="carpeta.id" @click="cargarArchivos(carpeta)">
+          <tr v-if="!enArchivos" @click="entrarArchivos">
+            <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">Carpeta Raiz</span></td>
+          </tr>
+          <tr v-for="carpeta in carpetas" :key="carpeta.id" v-if="enArchivos" @click="cargarArchivos(carpeta)">
             <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{ carpeta.nombre }}</span></td>
           </tr>
-          <tr v-for="archivo in archivos" :key="archivo.id" @click="descargar(archivo.id)">
+          <tr v-for="archivo in archivos" :key="archivo.id" v-if="enArchivos" @click="descargar(archivo.id)">
             <td class="highlight">
               <i :class="archivoIcon(archivo)" :style="{ color: archivoColor(archivo) }"></i> <span class="file-name">{{ archivo.nombre }}</span>
             </td>
           </tr>
-          <tr v-if="carpetas.length === 0 && archivos.length === 0">
+          <tr v-if="carpetas.length === 0 && archivos.length === 0 && enArchivos">
             <td colspan="2">No existen archivos, por favor crea o agrega archivos.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
-    <div class="actions mb-3">
-      <input type="text" v-model="nuevaCarpeta" placeholder="Nombre de carpeta" class="form-control">
+    <div class="actions" v-if="enArchivos">
+      <input type="text" class="form-control-file" v-model="nuevaCarpeta" placeholder="Nombre de carpeta" >
       <button class="btn btn-primary" @click="agregarCarpeta">
         <i class="bi bi-plus-lg"></i> Agregar Carpeta
       </button>
     </div>
 
-    <div class="actions">
+    <div class="actions " v-if="enArchivos">
       <input type="file" class="form-control-file" @change="seleccionarArchivo">
       <button class="btn btn-primary" @click="guardarArchivo" :disabled="!archivoSeleccionado">
         <i class="bi bi-floppy-fill"></i> Guardar Archivo
@@ -66,6 +69,7 @@ export default {
       nombreCarpetaSeleccionada: "Archivos",
       nuevaCarpeta: "",
       archivoSeleccionado: null,
+      enArchivos: false,
     };
   },
   computed: {
@@ -120,8 +124,12 @@ export default {
         this.carpetas = carpetaAnterior.carpetas;
         this.archivos = carpetaAnterior.archivos;
       } else {
-        this.$emit('regresarCarpetaRaiz');
+        this.enArchivos = false;
       }
+    },
+    entrarArchivos() {
+      this.enArchivos = true;
+      this.fetchData();
     },
     agregarCarpeta() {
       if (!this.nuevaCarpeta.trim()) {
@@ -269,6 +277,13 @@ export default {
 </script>
 
 <style scoped>
+
+input{
+
+  border: 1px solid #c4c4c4;
+  border-radius: 5px; 
+}
+
 .file-explorer-container {
   margin: 0 20px;
 }
@@ -306,7 +321,7 @@ export default {
 }
 
 .icon-folder {
-  color: yellow;
+  color: orange; /* Cambiado a naranja */
 }
 
 .icon-file {

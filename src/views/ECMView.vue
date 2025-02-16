@@ -4,29 +4,7 @@
   </div>
   <div class="mt-4 container">
     <h1 class="title">ECM</h1>
-
-    <div>
-      <div v-if="!enArchivos">
-        <div class="table-responsive">
-          <table class="table table-bordered">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr @click="entrarArchivos">
-                <td><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">Carpeta Raiz</span></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div v-else>
-     
-        <FileExplorer :carpetaId="carpetaId" />
-      </div>
-    </div>
+    <FileExplorer :carpetaId="carpetaId" />
   </div>
   <div>
     <Footer />
@@ -63,7 +41,6 @@ export default {
 
 <style scoped>
 .container {
- 
   flex-direction: column;
   align-items: center;
   justify-content: center;
@@ -75,6 +52,8 @@ export default {
   font-size: 2rem;
   margin-bottom: 10px;
   text-align: center;
+  color: rgb(0, 0, 82);
+  font-weight: bold;
 }
 
 .table-responsive {
@@ -93,6 +72,4 @@ export default {
 .file-name:hover {
   text-decoration: underline;
 }
-
-
 </style>
