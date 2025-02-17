@@ -3,15 +3,21 @@ import axios from 'axios';
 const BASE_URL = 'http://localhost:8081/gestorcontenido/v1.1/archivos';
 
 // Subir archivo
-const subirArchivo = async (archivo, nombre, tipo) => {
-    const formData = new FormData();
-    formData.append("archivo", archivo);
-    formData.append("nombre", nombre);
-    formData.append("tipo", tipo);
-
+const subirArchivo = async (formData) => {
     return axios.post(`${BASE_URL}`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
     }).then(r => r.data);
+};
+
+const buscarArchivosPorIdCapeta = async (id) => {
+    const url = `${BASE_URL}/porIdCarpeta?id=${id === null ? 'null' : id}`;
+    try {
+        const response = await axios.get(url);
+        return response.data;
+    } catch (error) {
+        console.error("Error al obtener las carpetas:", error);
+        return [];
+    }
 };
 
 // Obtener archivo por ID
@@ -40,8 +46,8 @@ const listarN = async () => {
 };
 
 // Métodos fachada
-export const subirArchivoFachada = async (archivo, nombre, tipo) => {
-    return await subirArchivo(archivo, nombre, tipo);
+export const subirArchivoFachada = async (formData) => {
+    return await subirArchivo(formData);
 };
 
 export const obtenerPorIdFachada = async (id) => {
@@ -62,4 +68,8 @@ export const listarFachada = async () => {
 
 export const listarNFachada = async () => {
     return await listarN();
+};
+
+export const buscarArchivosPorIdCapetaFachada = async (id) => {
+    return await buscarArchivosPorIdCapeta(id);
 };
