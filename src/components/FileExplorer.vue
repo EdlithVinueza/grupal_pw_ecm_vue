@@ -6,7 +6,8 @@
       <button v-show="this.historial.length > 0" class="btn btn-primary mb-3" @click="regresarCarpeta">
         <i class="bi bi-arrow-left text-white"></i> Volver
       </button>
-      <button :class="['btn', mostrarAgregarCapeta ? 'btn-danger' : 'btn-success', 'mb-3', 'mr-2']" @click="mostrarDivAgregar">
+      <button :class="['btn', mostrarAgregarCapeta ? 'btn-danger' : 'btn-success', 'mb-3', 'mr-2']"
+        @click="mostrarDivAgregar">
         <i :class="mostrarAgregarCapeta ? 'bi bi-x text-white' : 'bi bi-plus-lg text-white'"></i>
       </button>
       <button :class="['btn', mostrarSubirArchivo ? 'btn-danger' : 'btn-success', 'mb-3']" @click="mostrarDivSubir">
@@ -26,11 +27,16 @@
             <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{
               carpeta.nombre }}</span></td>
           </tr>
-          <tr v-for="archivo in archivos" :key="archivo.id" @click="descargar(archivo.id)">
+          <tr v-for="archivo in archivos" :key="archivo.id">
             <td class="highlight">
               <i :class="archivoIcon(archivo)" :style="{ color: archivoColor(archivo) }"></i> <span class="file-name">{{
                 archivo.nombre }}</span>
             </td>
+            <td>
+        <button class="btn btn-outline-primary btn-sm" @click="descargar(archivo.id)">
+          <i class="bi bi-download"></i> Descargar
+        </button>
+      </td>
           </tr>
           <tr v-if="carpetas.length === 0 && archivos.length === 0 && enArchivos">
             <td colspan="2">No existen archivos o carpetas, por favor crea o agrega archivos.</td>
@@ -63,7 +69,8 @@
 
 <script>
 import { buscarTodosCarpetaFachada, guardarCarpetaFachada } from "../client/CarpetaClient";
-
+import { subirArchivoFachada, listarFachada, listarNFachada } from "../client/ArchivoClient";
+import { descargarArchivo, getArchivos } from "../client/api";
 export default {
   name: 'FileExplorer',
   data() {
@@ -96,7 +103,15 @@ export default {
       try {
         const response = await buscarTodosCarpetaFachada();
         this.carpetas = response.filter(carpeta => carpeta.carpeta_padre_id === null);
-        this.archivos = []; // Inicialmente, no hay archivos
+       this.archivos = []; // Inicialmente, no hay archivos
+        //const archivosResponse = await listarFachada();
+        //if (this.carpetaSeleccionada) {
+         // this.archivos = archivosResponse.filter(archivo =>
+           // archivo.arch_id !== null && archivo.carp_id === this.carpetaSeleccionada.id
+         //);
+        //} else {
+       //   this.archivos = []; // Si no hay carpeta seleccionada, no mostrar archivos
+       // }
       } catch (error) {
         console.error("Error al obtener carpetas, usando mock:", error);
         this.carpetas = []; // Si hay error, se dejan las carpetas vacías
@@ -114,11 +129,12 @@ export default {
       this.carpetaActual = carpeta;
       console.log(this.historial);
       try {
-        //const response = await getArchivos(carpeta.id);
+        //const response = await getArchivos(carpeta.nombre);
         //this.archivos = response.data.archivos; // Carga los archivos de la carpeta seleccionada
         const data = await buscarTodosCarpetaFachada();
         this.carpetas = data.filter(c => c.carpeta_padre_id === carpeta.id);
-
+        this.archivos = await listarFachada();
+        console.log("Archivos cargados:", this.archivos);
       } catch (error) {
         console.error("Error al obtener archivos, usando mock:", error);
         this.archivos = []; // Si no hay respuesta del API, se deja vacío
@@ -184,13 +200,29 @@ export default {
         alert("Seleccione un archivo.");
         return;
       }
-      const formData = new FormData();
-      formData.append("archivo", this.archivoSeleccionado);
+
+      const nombre = this.archivoSeleccionado.name; // Nombre del archivo
+      const tipo = this.archivoSeleccionado.type; // Tipo MIME del archivo
+      const carpetaId = this.carpetaActual ? this.carpetaActual.id : null; // Obtener ID de la carpeta
+      console.log(carpetaId);
+      if (!carpetaId) {
+        alert("La carpeta seleccionada no existe.");
+        return;
+      }
 
       try {
-        await subirArchivo(formData);  // Llamada al API para subir el archivo
+        await subirArchivoFachada(this.archivoSeleccionado, nombre, tipo, carpetaId); // Pasar los tres parámetros
         alert("Archivo subido con éxito.");
+
+
         this.archivoSeleccionado = null;
+        this.mostrarSubirArchivo = false;
+        //this.fetchData(); // Recargar la lista de archivos
+        if (this.carpetaActual) {
+          await this.cargarArchivos(this.carpetaActual); // Recargar la carpeta actual
+        } else {
+          await this.fetchData(); // Recargar la lista principal si no hay carpeta seleccionada
+        }
       } catch (error) {
         console.error("Error al subir archivo:", error);
         alert("No se pudo subir el archivo.");
@@ -334,18 +366,42 @@ input {
 
 }
 
-.fade-slide-enter-active, .fade-slide-leave-active {
+.fade-slide-enter-active,
+.fade-slide-leave-active {
   transition: transform 0.5s ease, opacity 0.5s ease;
 }
 
-.fade-slide-enter, .fade-slide-leave-to {
-  transform: translateY(-20px); 
+.fade-slide-enter,
+.fade-slide-leave-to {
+  transform: translateY(-20px);
   opacity: 0;
 }
 
-.fade-slide-enter-to, .fade-slide-leave {
-  transform: translateY(0); 
-  opacity: 1; 
+.fade-slide-enter-to,
+.fade-slide-leave {
+  transform: translateY(0);
+  opacity: 1;
 }
 
+
+.table th,
+.table td {
+  border: none !important; /* Quita las líneas de las celdas */
+  padding: 10px; /* Espacio entre los elementos */
+}
+
+.table thead {
+  background-color: transparent; /* Fondo transparente en los encabezados */
+  font-weight: bold;
+}
+
+/* Agregar espacio entre filas */
+.table tbody tr {
+  border-bottom: 1px solid transparent !important; /* Evita líneas de separación */
+}
+
+/* Opcional: efecto hover para filas */
+.table tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.05); /* Leve sombreado al pasar el mouse */
+}
 </style>

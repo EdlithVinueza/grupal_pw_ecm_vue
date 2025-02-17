@@ -6,8 +6,8 @@ const API_URL = "http://localhost:8081/gestorcontenido/v1.1";
 const getCarpetas = () => axios.get(`${API_URL}/carpetas`);
 
 // Obtener archivos de una carpeta específica
-const getArchivos = (carpetaId) =>
-  axios.get(`${API_URL}/archivos/listar?carpeta=${carpetaId}`);
+export const getArchivos = (carpetaId) =>
+   axios.get(`${API_URL}/listar`).then(r => r.data);
 
 // Subir archivo
 const subirArchivo = (formData) =>
@@ -16,7 +16,7 @@ const subirArchivo = (formData) =>
   });
 
 // Descargar archivo
-const descargarArchivo = (archivoId) =>
+export const descargarArchivo = (archivoId) =>
   axios.get(`${API_URL}/archivos/${archivoId}`, { responseType: "blob" });
 
 export default{
