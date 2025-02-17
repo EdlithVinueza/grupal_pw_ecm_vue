@@ -24,8 +24,7 @@
         </thead>
         <tbody>
           <tr v-for="carpeta in carpetas" :key="carpeta.id" @click="cargarArchivos(carpeta)">
-            <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{
-              carpeta.nombre }}</span></td>
+            <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{ carpeta.nombre }}</span></td>
           </tr>
           <tr v-for="archivo in archivos" :key="archivo.id">
             <td class="highlight d-flex justify-content-between align-items-center">
@@ -57,7 +56,7 @@
 
     <transition name="fade-slide">
       <div v-show="mostrarSubirArchivo" class="actions">
-        <input type="file" class="form-control-file" @change="seleccionarArchivo">
+        <input type="file" class="form-control-file" @change="seleccionarArchivo" ref="fileInput">
         <button class="btn btn-primary" @click="guardarArchivo" :disabled="!archivoSeleccionado">
           <i class="bi bi-floppy-fill"></i> Subir Archivo
         </button>
@@ -66,7 +65,6 @@
 
   </div>
 </template>
-
 
 <script>
 import { buscarTodosCarpetaFachada, guardarCarpetaFachada, buscarCarpetasPorIdPadreFachada } from "../client/CarpetaClient";
@@ -108,8 +106,8 @@ export default {
         this.archivos = reponseArchivos;
       } catch (error) {
         console.error("Error al obtener carpetas, usando mock:", error);
-        this.carpetas = []; // Si hay error, se dejan las carpetas vacías
-        this.archivos = []
+        this.carpetas = []; 
+        this.archivos = [];
       }
     },
     async cargarArchivos(carpeta) {
@@ -132,123 +130,124 @@ export default {
 
       } catch (error) {
         console.error("Error al obtener archivos, usando mock:", error);
-        this.archivos = []; // Si no hay respuesta del API, se deja vacío
-        this.carpetas = []; // Lo mismo para las carpetas
+        this.archivos = [];
+        this.carpetas = [];
       }
     },
 
     regresarCarpeta() {
       if (this.historial.length > 0) {
         const carpetaAnterior = this.historial.pop();
-
         this.nombreCarpetaSeleccionada = carpetaAnterior.nombre;
         this.carpetas = carpetaAnterior.carpetas;
         this.archivos = carpetaAnterior.archivos;
-
         const carpetaAnteriorAux = this.historial[this.historial.length - 1]
         this.carpetaActual = carpetaAnteriorAux ? carpetaAnteriorAux.carpetaAux : null;
-
       } else {
         this.enArchivos = false;
         this.carpetas = [];
         this.archivos = [];
         this.carpetaActual = null;
       }
-
     },
     async agregarCarpeta() {
-      if (!this.nuevaCarpeta.trim()) {
-        alert("Ingrese un nombre para la carpeta.");
-        return;
-      }
+  if (!this.nuevaCarpeta.trim()) {
+    alert("Ingrese un nombre para la carpeta.");
+    return;
+  }
 
-      const nuevaCarpeta = {
-        nombre: this.nuevaCarpeta,
-        carpeta_padre_id: this.carpetaActual ? this.carpetaActual.id : null,
-      };
+  // Validar que no exista una carpeta con el mismo nombre
+  const carpetaExistente = this.carpetas.some(carpeta => carpeta.nombre.toLowerCase() === this.nuevaCarpeta.toLowerCase());
+  
+  if (carpetaExistente) {
+    alert(`Ya existe una carpeta con el nombre "${this.nuevaCarpeta}".`);
+    return;
+  }
 
-      try {
-        await guardarCarpetaFachada(nuevaCarpeta);
-        if (this.carpetaActual) {
-          const data = await buscarCarpetasPorIdPadreFachada(this.carpetaActual.id);
-          this.carpetas = data;
-        } else {
-          const response = await buscarCarpetasPorIdPadreFachada(null);
-          this.carpetas = response;
-        }
-        this.nuevaCarpeta = "";
-      } catch (error) {
-        console.error("Error al guardar la carpeta:", error);
-      }
-    },
+  const nuevaCarpeta = {
+    nombre: this.nuevaCarpeta,
+    carpeta_padre_id: this.carpetaActual ? this.carpetaActual.id : null,
+  };
+
+  try {
+    await guardarCarpetaFachada(nuevaCarpeta);
+    if (this.carpetaActual) {
+      const data = await buscarCarpetasPorIdPadreFachada(this.carpetaActual.id);
+      this.carpetas = data;
+    } else {
+      const response = await buscarCarpetasPorIdPadreFachada(null);
+      this.carpetas = response;
+    }
+    this.nuevaCarpeta = "";
+  } catch (error) {
+    console.error("Error al guardar la carpeta:", error);
+  }
+}
+,
     seleccionarArchivo(event) {
       this.archivoSeleccionado = event.target.files[0];
     },
     mostrarDivAgregar() {
       this.mostrarAgregarCapeta = !this.mostrarAgregarCapeta;
-
     },
     mostrarDivSubir() {
       this.mostrarSubirArchivo = !this.mostrarSubirArchivo;
     },
     async guardarArchivo() {
-      if (!this.archivoSeleccionado) {
-        alert("Seleccione un archivo.");
-        return;
-      }
+  if (!this.archivoSeleccionado) {
+    alert("Seleccione un archivo.");
+    return;
+  }
 
-      const formData = new FormData();
-      formData.append("archivo", this.archivoSeleccionado);
-      formData.append("nombre", this.archivoSeleccionado ? this.archivoSeleccionado.name : 'default_name');
-      formData.append("tipo", this.archivoSeleccionado ? this.archivoSeleccionado.type : 'default_type');
-      const carpetaId = this.carpetaActual ? this.carpetaActual.id : null;
-      formData.append("carpetaId", carpetaId);
+  const nombreArchivo = this.archivoSeleccionado.name;
+  const archivoExistente = this.archivos.some(archivo => archivo.nombre === nombreArchivo);
 
+  if (archivoExistente) {
+    alert(`Ya existe un archivo con el nombre "${nombreArchivo}" en esta carpeta.`);
+    return;
+  }
 
-      console.log(formData);
+  const formData = new FormData();
+  formData.append("archivo", this.archivoSeleccionado);
+  formData.append("nombre", nombreArchivo);
+  formData.append("tipo", this.archivoSeleccionado.type);
+  const carpetaId = this.carpetaActual ? this.carpetaActual.id : null;
+  formData.append("carpetaId", carpetaId);
 
-      try {
-        await subirArchivoFachada(formData);
+  try {
+    await subirArchivoFachada(formData);
 
-        if (this.carpetaActual) {
-          const dataArchivo = await buscarArchivosPorIdCapetaFachada(this.carpetaActual.id);
-          this.archivos = dataArchivo;
-        } else {
-          const reponseArchivos = await buscarArchivosPorIdCapetaFachada(null);
-          this.archivos = reponseArchivos;
-        }
+    if (this.carpetaActual) {
+      const dataArchivo = await buscarArchivosPorIdCapetaFachada(this.carpetaActual.id);
+      this.archivos = dataArchivo;
+    } else {
+      const reponseArchivos = await buscarArchivosPorIdCapetaFachada(null);
+      this.archivos = reponseArchivos;
+    }
 
-        this.archivoSeleccionado = null;
+    this.archivoSeleccionado = null;
+    // Limpiar el input de archivo
+    this.$refs.fileInput.value = '';
+  } catch (error) {
+    console.error("Error al subir archivo:", error);
+    alert("No se pudo subir el archivo.");
+  }
+}
+,
 
-        // Vaciamos el input de archivo en la vista
-        this.$nextTick(() => {
-          const fileInput = this.$refs.fileInput;
-          if (fileInput) fileInput.value = '';
-        });
-      } catch (error) {
-        console.error("Error al subir archivo:", error);
-        alert("No se pudo subir el archivo.");
-      }
-    },
     async descargar(archivo) {
       try {
-        // Obtener el archivo por ID
         const response = await obtenerPorIdFachada(archivo.id);
-        console.log("Respuesta del servidor:", response);
-
         const archivoBlob = new Blob([response], { type: response.type });
-
         const url = window.URL.createObjectURL(archivoBlob);
         const link = document.createElement("a");
         const filename = response.name || `${archivo.nombre}`;
 
         link.href = url;
-        link.setAttribute("download", filename); // Asignar nombre al archivo
-
+        link.setAttribute("download", filename);
         document.body.appendChild(link);
         link.click();
 
-        // Limpiar: eliminar el enlace y liberar el objeto URL
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
       } catch (error) {
@@ -282,6 +281,7 @@ export default {
   },
 };
 </script>
+
 
 <style scoped>
 input {
