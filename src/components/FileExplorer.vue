@@ -47,13 +47,13 @@
     </transition>
 
     <transition name="fade-slide">
-      <div v-show="mostrarSubirArchivo" class="actions">
-        <input type="file" class="form-control-file" @change="seleccionarArchivo">
-        <button class="btn btn-primary" @click="guardarArchivo" :disabled="!archivoSeleccionado">
-          <i class="bi bi-floppy-fill"></i> Subir Archivo
-        </button>
-      </div>
-    </transition>
+  <div v-show="mostrarSubirArchivo" class="actions">
+    <input type="file" class="form-control-file" @change="seleccionarArchivo" ref="fileInput">
+    <button class="btn btn-primary" @click="guardarArchivo" :disabled="!archivoSeleccionado">
+      <i class="bi bi-floppy-fill"></i> Subir Archivo
+    </button>
+  </div>
+</transition>
 
   </div>
 </template>
@@ -215,28 +215,29 @@ export default {
       this.mostrarSubirArchivo = !this.mostrarSubirArchivo;
     },
     async guardarArchivo() {
-      if (!this.archivoSeleccionado) {
-        alert("Seleccione un archivo.");
-        return;
-      }
-      const formData = new FormData();
-      
-      formData.append("nombre", this.archivoSeleccionado.name.split('.')[0]);
-      formData.append("archivo", this.archivoSeleccionado);
-      formData.append("tipo", this.archivoSeleccionado.name.split('.').pop());
-      console.log("Guardar en: "+this.nombreCarpetaSeleccionada)
-      formData.append("carpeta", this.nombreCarpetaSeleccionada); // Solo enviar el nombre de la carpeta actual
-      console.log(this.archivoSeleccionado)
-      
-      try {
-        await subirArchivoFachada(formData);  // Llamada al API para subir el archivo
-        alert("Archivo subido con éxito.");
-        this.archivoSeleccionado = null;
-      } catch (error) {
-        console.error("Error al subir archivo:", error);
-        alert("No se pudo subir el archivo.");
-      }
-    },
+  if (!this.archivoSeleccionado) {
+    alert("Seleccione un archivo.");
+    return;
+  }
+  const formData = new FormData();
+  
+  formData.append("nombre", this.archivoSeleccionado.name.split('.')[0]);
+  formData.append("archivo", this.archivoSeleccionado);
+  formData.append("tipo", this.archivoSeleccionado.name.split('.').pop());
+  console.log("Guardar en: "+this.nombreCarpetaSeleccionada)
+  formData.append("carpeta", this.nombreCarpetaSeleccionada); // Solo enviar el nombre de la carpeta actual
+  console.log(this.archivoSeleccionado)
+  
+  try {
+    await subirArchivoFachada(formData);  // Llamada al API para subir el archivo
+    alert("Archivo subido con éxito.");
+    this.archivoSeleccionado = null;
+    this.$refs.fileInput.value = ""; // Limpiar el campo de archivo seleccionado
+  } catch (error) {
+    console.error("Error al subir archivo:", error);
+    alert("No se pudo subir el archivo.");
+  }
+},
     async descargar(archivoId) {
       try {
         const response = await descargarArchivo(archivoId);
