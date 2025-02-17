@@ -63,6 +63,7 @@
 
 <script>
 import { buscarTodosCarpetaFachada, guardarCarpetaFachada } from "../client/CarpetaClient";
+import { listarFachada, subirArchivoFachada,obtenerPorIdFachada } from "../client/ArchivoClient";
 
 export default {
   name: 'FileExplorer',
@@ -89,7 +90,8 @@ export default {
         return ['Archivos'].concat(ruta).join(' -> ');
       }
       return [].concat(ruta).join(' -> ');
-    }
+    },
+    
   },
   methods: {
     async fetchData() {
@@ -114,7 +116,9 @@ export default {
       this.carpetaActual = carpeta;
       console.log(this.historial);
       try {
-        //const response = await getArchivos(carpeta.id);
+        const response = await listarFachada(carpeta.nombre);
+        console.log(response);
+        this.archivos = response;
         //this.archivos = response.data.archivos; // Carga los archivos de la carpeta seleccionada
         const data = await buscarTodosCarpetaFachada();
         this.carpetas = data.filter(c => c.carpeta_padre_id === carpeta.id);
@@ -185,12 +189,18 @@ export default {
         return;
       }
       const formData = new FormData();
+      formData.append("nombre", this.archivoSeleccionado.name.split('.')[0]);
+      formData.append("tipo", this.archivoSeleccionado.type);
       formData.append("archivo", this.archivoSeleccionado);
+      console.log("Guardar en: "+this.nombreCarpetaSeleccionada)
+      formData.append("carpeta", this.nombreCarpetaSeleccionada); // Solo enviar el nombre de la carpeta actual
+      console.log(this.archivoSeleccionado)
 
       try {
-        await subirArchivo(formData);  // Llamada al API para subir el archivo
+        await subirArchivoFachada(formData);  // Llamada al API para subir el archivo
         alert("Archivo subido con éxito.");
         this.archivoSeleccionado = null;
+        this.archivos = await listarFachada(this.nombreCarpetaSeleccionada);
       } catch (error) {
         console.error("Error al subir archivo:", error);
         alert("No se pudo subir el archivo.");
@@ -198,7 +208,7 @@ export default {
     },
     async descargar(archivoId) {
       try {
-        const response = await descargarArchivo(archivoId);
+        const response = await obtenerPorIdFachada(archivoId);
         const url = window.URL.createObjectURL(new Blob([response.data]));
         const link = document.createElement("a");
         link.href = url;
@@ -211,7 +221,7 @@ export default {
       }
     },
     archivoIcon(archivo) {
-      const extension = archivo.nombre.split('.').pop().toLowerCase();
+      const extension = archivo.tipo;
       switch (extension) {
         case 'pdf': return 'bi bi-file-pdf';
         case 'jpg': case 'jpeg': case 'png': case 'gif': return 'bi bi-image-fill';
@@ -221,7 +231,7 @@ export default {
       }
     },
     archivoColor(archivo) {
-      const extension = archivo.nombre.split('.').pop().toLowerCase();
+      const extension = archivo.tipo;
       switch (extension) {
         case 'pdf': return 'red';
         case 'jpg': case 'jpeg': case 'png': case 'gif': return 'purple';
