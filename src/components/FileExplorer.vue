@@ -25,7 +25,7 @@
         <tbody>
           <tr v-for="carpeta in carpetas" :key="carpeta.id" @click="cargarArchivos(carpeta)">
             <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{
-                carpeta.nombre }}</span></td>
+              carpeta.nombre }}</span></td>
           </tr>
           <tr v-for="archivo in archivos" :key="archivo.id">
             <td class="highlight d-flex justify-content-between align-items-center">
@@ -64,10 +64,13 @@
       </div>
     </transition>
   </div>
-  <div v-if="alerta.mostrar" class="alert" :class="alerta.clase">
+  <div v-if="alerta.mostrar" class="alert-container">
+    <div v-if="alerta.mostrar" class="alert" :class="alerta.clase">
       <button type="button" class="close" @click="alerta.mostrar = false">&times;</button>
       {{ alerta.mensaje }}
     </div>
+  </div>
+
 </template>
 
 <script>
@@ -411,23 +414,32 @@ input {
   opacity: 1;
 }
 
+.alert-container {
+  position: fixed; 
+  top: 20px; 
+  left: 50%; 
+  transform: translate(-50%); 
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
+
 .alert {
   padding: 10px;
   margin-top: 20px;
+  margin-left: 20px;
   border-radius: 5px;
-  display: flex;
-  justify-content: flex-start; 
-  align-items: center;
-  font-size: 14px;
-  font-weight: bold;
-  text-align: left; 
+  border: 2px solid #ccc;
+  background-color: #f8d7da;
+  color: #721c24;
 }
 
 
 .alert .close {
   font-size: 20px;
-  font-weight: bold;
-  border: none;
   background: transparent;
+  border: none;
+  cursor: pointer;
 }
 </style>
