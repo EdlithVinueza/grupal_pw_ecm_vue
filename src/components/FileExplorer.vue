@@ -24,7 +24,8 @@
         </thead>
         <tbody>
           <tr v-for="carpeta in carpetas" :key="carpeta.id" @click="cargarArchivos(carpeta)">
-            <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{ carpeta.nombre }}</span></td>
+            <td class="highlight"><i class="bi bi-folder-fill icon-folder"></i> <span class="file-name">{{
+                carpeta.nombre }}</span></td>
           </tr>
           <tr v-for="archivo in archivos" :key="archivo.id">
             <td class="highlight d-flex justify-content-between align-items-center">
@@ -63,6 +64,10 @@
       </div>
     </transition>
 
+    <div v-if="alerta.mostrar" class="alert" :class="alerta.clase">
+      <button type="button" class="close" @click="alerta.mostrar = false">&times;</button>
+      {{ alerta.mensaje }}
+    </div>
   </div>
 </template>
 
@@ -83,7 +88,12 @@ export default {
       archivoSeleccionado: null,
       enArchivos: true,
       mostrarAgregarCapeta: false,
-      mostrarSubirArchivo: false
+      mostrarSubirArchivo: false,
+      alerta: {
+        mostrar: false,
+        mensaje: '',
+        clase: ''
+      }
     };
   },
   computed: {
@@ -98,6 +108,11 @@ export default {
     }
   },
   methods: {
+    mostrarAlerta(mensaje, clase) {
+      this.alerta.mostrar = true;
+      this.alerta.mensaje = mensaje;
+      this.alerta.clase = clase;
+    },
     async fetchData() {
       try {
         const responseCarpetas = await buscarCarpetasPorIdPadreFachada(null);
@@ -106,7 +121,7 @@ export default {
         this.archivos = reponseArchivos;
       } catch (error) {
         console.error("Error al obtener carpetas, usando mock:", error);
-        this.carpetas = []; 
+        this.carpetas = [];
         this.archivos = [];
       }
     },
@@ -151,39 +166,39 @@ export default {
       }
     },
     async agregarCarpeta() {
-  if (!this.nuevaCarpeta.trim()) {
-    alert("Ingrese un nombre para la carpeta.");
-    return;
-  }
+      if (!this.nuevaCarpeta.trim()) {
+        this.mostrarAlerta("Ingrese un nombre para la carpeta.");
+        return;
+      }
 
-  // Validar que no exista una carpeta con el mismo nombre
-  const carpetaExistente = this.carpetas.some(carpeta => carpeta.nombre.toLowerCase() === this.nuevaCarpeta.toLowerCase());
-  
-  if (carpetaExistente) {
-    alert(`Ya existe una carpeta con el nombre "${this.nuevaCarpeta}".`);
-    return;
-  }
+      // Validar que no exista una carpeta con el mismo nombre
+      const carpetaExistente = this.carpetas.some(carpeta => carpeta.nombre.toLowerCase() === this.nuevaCarpeta.toLowerCase());
 
-  const nuevaCarpeta = {
-    nombre: this.nuevaCarpeta,
-    carpeta_padre_id: this.carpetaActual ? this.carpetaActual.id : null,
-  };
+      if (carpetaExistente) {
+        this.mostrarAlerta(`Ya existe una carpeta con el nombre "${this.nuevaCarpeta}".`);
+        return;
+      }
 
-  try {
-    await guardarCarpetaFachada(nuevaCarpeta);
-    if (this.carpetaActual) {
-      const data = await buscarCarpetasPorIdPadreFachada(this.carpetaActual.id);
-      this.carpetas = data;
-    } else {
-      const response = await buscarCarpetasPorIdPadreFachada(null);
-      this.carpetas = response;
+      const nuevaCarpeta = {
+        nombre: this.nuevaCarpeta,
+        carpeta_padre_id: this.carpetaActual ? this.carpetaActual.id : null,
+      };
+
+      try {
+        await guardarCarpetaFachada(nuevaCarpeta);
+        if (this.carpetaActual) {
+          const data = await buscarCarpetasPorIdPadreFachada(this.carpetaActual.id);
+          this.carpetas = data;
+        } else {
+          const response = await buscarCarpetasPorIdPadreFachada(null);
+          this.carpetas = response;
+        }
+        this.nuevaCarpeta = "";
+      } catch (error) {
+        console.error("Error al guardar la carpeta:", error);
+      }
     }
-    this.nuevaCarpeta = "";
-  } catch (error) {
-    console.error("Error al guardar la carpeta:", error);
-  }
-}
-,
+    ,
     seleccionarArchivo(event) {
       this.archivoSeleccionado = event.target.files[0];
     },
@@ -194,46 +209,46 @@ export default {
       this.mostrarSubirArchivo = !this.mostrarSubirArchivo;
     },
     async guardarArchivo() {
-  if (!this.archivoSeleccionado) {
-    alert("Seleccione un archivo.");
-    return;
-  }
+      if (!this.archivoSeleccionado) {
+        this.mostrarAlerta("Seleccione un archivo.");
+        return;
+      }
 
-  const nombreArchivo = this.archivoSeleccionado.name;
-  const archivoExistente = this.archivos.some(archivo => archivo.nombre === nombreArchivo);
+      const nombreArchivo = this.archivoSeleccionado.name;
+      const archivoExistente = this.archivos.some(archivo => archivo.nombre === nombreArchivo);
 
-  if (archivoExistente) {
-    alert(`Ya existe un archivo con el nombre "${nombreArchivo}" en esta carpeta.`);
-    return;
-  }
+      if (archivoExistente) {
+        this.mostrarAlerta(`Ya existe un archivo con el nombre "${nombreArchivo}" en esta carpeta.`);
+        return;
+      }
 
-  const formData = new FormData();
-  formData.append("archivo", this.archivoSeleccionado);
-  formData.append("nombre", nombreArchivo);
-  formData.append("tipo", this.archivoSeleccionado.type);
-  const carpetaId = this.carpetaActual ? this.carpetaActual.id : null;
-  formData.append("carpetaId", carpetaId);
+      const formData = new FormData();
+      formData.append("archivo", this.archivoSeleccionado);
+      formData.append("nombre", nombreArchivo);
+      formData.append("tipo", this.archivoSeleccionado.type);
+      const carpetaId = this.carpetaActual ? this.carpetaActual.id : null;
+      formData.append("carpetaId", carpetaId);
 
-  try {
-    await subirArchivoFachada(formData);
+      try {
+        await subirArchivoFachada(formData);
 
-    if (this.carpetaActual) {
-      const dataArchivo = await buscarArchivosPorIdCapetaFachada(this.carpetaActual.id);
-      this.archivos = dataArchivo;
-    } else {
-      const reponseArchivos = await buscarArchivosPorIdCapetaFachada(null);
-      this.archivos = reponseArchivos;
+        if (this.carpetaActual) {
+          const dataArchivo = await buscarArchivosPorIdCapetaFachada(this.carpetaActual.id);
+          this.archivos = dataArchivo;
+        } else {
+          const reponseArchivos = await buscarArchivosPorIdCapetaFachada(null);
+          this.archivos = reponseArchivos;
+        }
+
+        this.archivoSeleccionado = null;
+        // Limpiar el input de archivo
+        this.$refs.fileInput.value = '';
+      } catch (error) {
+        console.error("Error al subir archivo:", error);
+        this.mostrarAlerta("No se pudo subir el archivo.");
+      }
     }
-
-    this.archivoSeleccionado = null;
-    // Limpiar el input de archivo
-    this.$refs.fileInput.value = '';
-  } catch (error) {
-    console.error("Error al subir archivo:", error);
-    alert("No se pudo subir el archivo.");
-  }
-}
-,
+    ,
 
     async descargar(archivo) {
       try {
@@ -252,7 +267,7 @@ export default {
         window.URL.revokeObjectURL(url);
       } catch (error) {
         console.error("Error al descargar archivo:", error);
-        alert("No se pudo descargar el archivo.");
+        this.mostrarAlerta("No se pudo descargar el archivo.");
       }
     },
     archivoIcon(archivo) {
@@ -395,5 +410,22 @@ input {
 .fade-slide-leave {
   transform: translateY(0);
   opacity: 1;
+}
+
+.alert {
+  padding: 10px;
+  margin-top: 20px;
+  border-radius: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 14px;
+  font-weight: bold;
+}
+.alert .close {
+  font-size: 20px;
+  font-weight: bold;
+  border: none;
+  background: transparent;
 }
 </style>
