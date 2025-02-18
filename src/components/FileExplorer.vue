@@ -63,12 +63,11 @@
         </button>
       </div>
     </transition>
-
-    <div v-if="alerta.mostrar" class="alert" :class="alerta.clase">
+  </div>
+  <div v-if="alerta.mostrar" class="alert" :class="alerta.clase">
       <button type="button" class="close" @click="alerta.mostrar = false">&times;</button>
       {{ alerta.mensaje }}
     </div>
-  </div>
 </template>
 
 <script>
@@ -417,11 +416,14 @@ input {
   margin-top: 20px;
   border-radius: 5px;
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-start; 
   align-items: center;
   font-size: 14px;
   font-weight: bold;
+  text-align: left; 
 }
+
+
 .alert .close {
   font-size: 20px;
   font-weight: bold;
